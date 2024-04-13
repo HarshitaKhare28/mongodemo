@@ -64,6 +64,34 @@ router.delete('/:id', async (req,res) => {
         }
     }
 });
+router.get('/:id', async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json(new GenerateResponse(false, "Product not found"));
+        }
+        res.json(new GenerateResponse(true, undefined, product));
+    } catch (error) {
+        res.status(500).json(new GenerateResponse(false, error.message));
+    }
+});
+router.put('/:id', async (req,res) => {
+    const productId = req.params.id;
+    const productObj = req.body;
+    try {
+        const upResult = await Product.findOneAndUpdate({ _id: productId }, { name: productObj.name, price: productObj.price }, { returnDocument: 'after' });
+        // Return all products as response
+        const products = await getProducts();
+        res.send(new GenerateResponse(true,undefined,products));
+    } catch (error) {
+        if (error instanceof Error) {
+            res.json(new GenerateResponse(false, error.message));
+        } else {
+            res.json(new GenerateResponse(false, error));
+        }
+    }
+});
+
 
 async function getProducts(){
     const products = await Product.find({}).lean();
